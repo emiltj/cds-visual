@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Omitting virtual environment
+cv101/
+syllabus.md
+
 # Distribution / packaging
 .Python
 build/
