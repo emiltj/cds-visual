@@ -131,6 +131,27 @@ def predict_unseen(image, model, classes):
     
     return None
 
+def predict_unseen_assignment4(image, model, classes):
+    """
+    Predict the category of unseen data, show probabilities 
+    
+    image: unseen data
+    model: trained model
+    classes: list of possible classes
+    """
+    # Reshape array
+    test_probs = model.predict_proba(image.reshape(1,784))
+    # plot prediction
+    #sns.barplot(x=classes, y=test_probs.squeeze());
+    #plt.ylabel("Probability");
+    #plt.xlabel("Class")
+    
+    #predictied label
+    idx_cls = np.argmax(test_probs)
+    #print(f"I think that this is class {classes[idx_cls]}")
+    
+    return classes[idx_cls]
+
 def prediction_coefficients(image, model, classes):
     # get number of classes
     nclasses = len(classes)
