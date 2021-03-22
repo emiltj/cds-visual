@@ -10,6 +10,9 @@ __pycache__/
 cv101/
 syllabus.md
 
+# Omitting some of data
+data/flowers/
+
 # Distribution / packaging
 .Python
 build/
