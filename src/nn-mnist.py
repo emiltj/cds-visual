@@ -22,8 +22,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 
-def main(outfilename, save, individual):
-
+def main(outfilename, save, individual, hiddenlayers, epochs):
     # Importing data; y = what the image depicts, X = values for all pixels (from top right, moving left)
     X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
 
@@ -37,23 +36,35 @@ def main(outfilename, save, individual):
                                                         train_size=7500, # absolute size of test and train set to avoid too much data
                                                         test_size=2500)
 
-    # Min-max scaling:
+    # Min-max scaling (doing it after the split, to avoid any fitting of the training data from the testing data)
     scaler = MinMaxScaler()
     scaler = scaler.fit(X_train)
     X_train_scaled = pd.DataFrame(scaler.transform(X_train))
     X_test_scaled = pd.DataFrame(scaler.transform(X_test))
 
-    # Fitting a model to the training data
-    clf = LogisticRegression(penalty='none', 
-                            tol=0.1, 
-                            solver='saga',
-                            multi_class='multinomial').fit(X_train_scaled, y_train)
+    # For each y-value in y_train and y_test, create a list of n(unique) elements, with 0's except for the [index] position (put 1 here)
+    y_train = LabelBinarizer().fit_transform(y_train) 
+    y_test = LabelBinarizer().fit_transform(y_test)
 
-    # Predicting the test data, using the model fitted on the training data
-    y_pred = clf.predict(X_test_scaled)
+    # Defining layers in the neural network:
+    hiddenlayers.insert(0, X_train.shape[1]) # Inserting the number of features as the input layer
+    hiddenlayers.append(10) # Inserting the number of possible outcomes as the output layer
+    nn_shape = hiddenlayers
 
-    # Get classification report
-    cm = pd.DataFrame(metrics.classification_report(y_test, y_pred, output_dict = True))
+    # Defining a model (with a specified number of nodes and layers)
+    nn = NeuralNetwork(nn_shape)
+
+    # Fit the model to the training data
+    nn.fit(X_train, y_train, epochs = epochs)
+
+    # Using the fitted model to predict the test data
+    predictions = nn.predict(X_test)
+
+    # The "predictions" object contains certainties that the given image contains a 0, 1, 2, etc. Instead we want a single prediction
+    predictions = predictions.argmax(axis=1)
+
+    # Getting a classification report:
+    cm = pd.DataFrame(classification_report(y_test.argmax(axis=1), predictions, output_dict = True))
 
     # Print to terminal
     print(cm)
@@ -64,15 +75,18 @@ def main(outfilename, save, individual):
         cm.to_csv(outpath, index = False)
         print(f"\n \n The classification benchmark report has been saved: \"{outpath}\"")
 
+    # If an individual image path is specified, then predict the number this image is meant to represent.
     if individual != None:
-        classes = sorted(set(y))
-        nclasses = len(classes)
         import cv2
         image = cv2.imread(individual)
         gray = cv2.bitwise_not(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-        compressed = cv2.resize(gray, (28, 28), interpolation=cv2.INTER_AREA)
-        individual_pred = clf_util.predict_unseen_assignment4(compressed, clf, classes)
-        print(f"\n \n Image prediction for {individual}: {individual_pred}")
+        compressed = cv2.resize(gray, (28, 28), interpolation=cv2.INTER_AREA)    
+        compressed_flattened = [float(item) for sublist in compressed for item in sublist] # Converting a list of lists into a list 
+        compressed_flattened = np.array(compressed_flattened) # Converting to array
+        compressed_flattened = pd.DataFrame(scaler.transform([compressed_flattened])) # Scaling the features of the individual image
+        individual_pred = nn.predict(compressed_flattened) # Predicting the individual image (output = 10 probabilities - one for each class (0:9))
+        individual_pred = individual_pred.argmax(axis=1) # Getting the highest probability as the prediction
+        print(f"\n \n Image prediction for {individual}: {individual_pred}\n \n") # Printing into terminal, the prediction
 
 # Define behaviour when called from command line
 if __name__=="__main__":
@@ -87,7 +101,7 @@ if __name__=="__main__":
         "-o",
         "--outfilename", 
         type = str,
-        default = "classif_report_logistic_regression.csv", # Default when not specifying name of outputfile
+        default = "classif_report_neural_networks.csv", # Default when not specifying name of outputfile
         required = False, # Since we have a default value, it is not required to specify this argument
         help = "str containing name of classification report")
 
@@ -105,8 +119,24 @@ if __name__=="__main__":
         type = str,
         default = None, # Default when not specifying anything in the terminal
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "str specifying a .png file which is to be classified using this logistic regression model. \n For trying it out, use: \n \"../data/cf_test/test.png\"")
+        help = "str specifying a .png file which is to be classified using this neural networks model. \n For trying it out, use: \n \"../data/cf_test/test.png\"")
+
+    parser.add_argument(
+        "-H",
+        "--hiddenlayers", 
+        type = list,
+        default = [2, 4], # Default when not specifying anything in the terminal
+        required = False, # Since we have a default value, it is not required to specify this argument
+        help = "list specifying the hidden layers, each element in the list corresponds to number of nodes in layer. index in list corresponds to hiddenlayer number. E.g. [2, 4]")
     
+    parser.add_argument(
+        "-e",
+        "--epochs", 
+        type = int,
+        default = 5, # Default when not specifying anything in the terminal
+        required = False, # Since we have a default value, it is not required to specify this argument
+        help = "int specifying number of epochs for training the model. Default = 5")
+
     args = parser.parse_args()
 
-    main(args.outfilename, args.save, args.individual)
+    main(args.outfilename, args.save, args.individual, args.hiddenlayers, args.epochs)
