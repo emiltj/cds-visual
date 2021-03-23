@@ -23,24 +23,36 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 
 def main(outfilename, save, individual, hiddenlayers, epochs):
+    
+    ############### DOESN'T RUN CORRECTLY: ###############
     # Importing data; y = what the image depicts, X = values for all pixels (from top right, moving left)
-    X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
+    #X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
 
-    X = np.array(X)
-    y = np.array(y)
+    #X = np.array(X)
+    #y = np.array(y)
 
     # Make a test-train split of some of the data
-    X_train, X_test, y_train, y_test = train_test_split(X, 
-                                                        y, 
-                                                        random_state=9, # just for replication purposes
-                                                        train_size=7500, # absolute size of test and train set to avoid too much data
-                                                        test_size=2500)
+    #X_train, X_test, y_train, y_test = train_test_split(X, 
+    #                                                    y, 
+    #                                                    random_state=9, # just for replication purposes
+    #                                                    train_size=7500, # absolute size of test and train set to avoid too much data
+    #                                                    test_size=2500)
+    ################################################
+
+    ############### RUNS CORRECTLY: ###############
+    digits = datasets.load_digits()
+    data = digits.data.astype("float")
+    # split data
+    X_train, X_test, y_train, y_test = train_test_split(data, 
+                                                  digits.target, 
+                                                  test_size=0.2)
+    ################################################
 
     # Min-max scaling (doing it after the split, to avoid any fitting of the training data from the testing data)
     scaler = MinMaxScaler()
     scaler = scaler.fit(X_train)
     X_train_scaled = pd.DataFrame(scaler.transform(X_train))
-    X_test_scaled = pd.DataFrame(scaler.transform(X_test))
+    X_test_scaled = pd.DataFrame(scaler.transform(X_test)) 
 
     # For each y-value in y_train and y_test, create a list of n(unique) elements, with 0's except for the [index] position (put 1 here)
     y_train = LabelBinarizer().fit_transform(y_train) 
@@ -87,6 +99,9 @@ def main(outfilename, save, individual, hiddenlayers, epochs):
         individual_pred = nn.predict(compressed_flattened) # Predicting the individual image (output = 10 probabilities - one for each class (0:9))
         individual_pred = individual_pred.argmax(axis=1) # Getting the highest probability as the prediction
         print(f"\n \n Image prediction for {individual}: {individual_pred}\n \n") # Printing into terminal, the prediction
+
+
+main("classif_report_neural_networks.csv", True, None, [8,16], 200)
 
 # Define behaviour when called from command line
 if __name__=="__main__":
