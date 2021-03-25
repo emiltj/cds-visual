@@ -131,6 +131,7 @@ def predict_unseen(image, model, classes):
     
     return None
 
+<<<<<<< HEAD
 def predict_unseen_assignment4(image, model, classes):
     """
     Predict the category of unseen data, show probabilities 
@@ -152,6 +153,8 @@ def predict_unseen_assignment4(image, model, classes):
     
     return classes[idx_cls]
 
+=======
+>>>>>>> 0777424e9c4bb8a24fabf99d346a208077f3f68a
 def prediction_coefficients(image, model, classes):
     # get number of classes
     nclasses = len(classes)

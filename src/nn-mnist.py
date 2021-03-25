@@ -92,14 +92,13 @@ def main(outfilename, save, individual, hiddenlayers, epochs):
         import cv2
         image = cv2.imread(individual)
         gray = cv2.bitwise_not(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
-        compressed = cv2.resize(gray, (28, 28), interpolation=cv2.INTER_AREA)    
+        compressed = cv2.resize(gray, (28, 28), interpolation=cv2.INTER_AREA)
         compressed_flattened = [float(item) for sublist in compressed for item in sublist] # Converting a list of lists into a list 
         compressed_flattened = np.array(compressed_flattened) # Converting to array
         compressed_flattened = pd.DataFrame(scaler.transform([compressed_flattened])) # Scaling the features of the individual image
         individual_pred = nn.predict(compressed_flattened) # Predicting the individual image (output = 10 probabilities - one for each class (0:9))
         individual_pred = individual_pred.argmax(axis=1) # Getting the highest probability as the prediction
         print(f"\n \n Image prediction for {individual}: {individual_pred}\n \n") # Printing into terminal, the prediction
-
 
 main("classif_report_neural_networks.csv", True, None, [8,16], 200)
 
