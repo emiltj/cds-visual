@@ -13,6 +13,11 @@ syllabus.md
 
 # Omitting some of data
 data/flowers/
+data/paintings/validation/*
+!data/paintings/validation/*7.jpg
+
+data/paintings/training/*
+!data/paintings/training/*7.jpg
 
 =======
 >>>>>>> 0777424e9c4bb8a24fabf99d346a208077f3f68a
