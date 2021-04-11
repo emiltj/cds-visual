@@ -1,26 +1,21 @@
 #!/usr/bin/env python
 
 # Importing libraries
-import sys,os
+import sys, os, argparse
 sys.path.append(os.path.join(".."))
-import argparse
+import utils.classifier_utils as clf_util
 import numpy as np 
 import pandas as pd
-import utils.classifier_utils as clf_util
-from sklearn import metrics
-from sklearn.datasets import fetch_openml
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
-from utils.neuralnetwork import NeuralNetwork
 from sklearn import metrics
 from sklearn import datasets
 from sklearn.datasets import fetch_openml
-from sklearn.preprocessing import LabelBinarizer
+from utils.neuralnetwork import NeuralNetwork
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
 
 def main(outfilename, save, individual, hiddenlayers, epochs):
     
@@ -117,7 +112,7 @@ if __name__=="__main__":
         type = str,
         default = "classif_report_neural_networks.csv", # Default when not specifying name of outputfile
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "str containing name of classification report")
+        help = "str - containing name of classification report")
 
     parser.add_argument(
         "-s",
@@ -125,7 +120,7 @@ if __name__=="__main__":
         type = bool,
         default = True, # Default when not specifying 
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "bool specifying whether to save classification report")
+        help = "bool - specifying whether to save classification report")
 
     parser.add_argument(
         "-i",
@@ -133,7 +128,7 @@ if __name__=="__main__":
         type = str,
         default = None, # Default when not specifying anything in the terminal
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "str specifying a .png file which is to be classified using this neural networks model. \n For trying it out, use: \n \"../data/cf_test/test.png\"")
+        help = "str - specifying a .png file which is to be classified using this neural networks model. \n For trying it out, use: \n \"../data/cf_test/test.png\"")
 
     parser.add_argument(
         "-H",
@@ -141,7 +136,7 @@ if __name__=="__main__":
         type = list,
         default = [2, 4], # Default when not specifying anything in the terminal
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "list specifying the hidden layers, each element in the list corresponds to number of nodes in layer. index in list corresponds to hiddenlayer number. E.g. [2, 4]")
+        help = "list - specifying the hidden layers, each element in the list corresponds to number of nodes in layer. index in list corresponds to hiddenlayer number. E.g. [2, 4]")
     
     parser.add_argument(
         "-e",
@@ -149,7 +144,7 @@ if __name__=="__main__":
         type = int,
         default = 5, # Default when not specifying anything in the terminal
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "int specifying number of epochs for training the model. Default = 5")
+        help = "int - specifying number of epochs for training the model. Default = 5")
 
     args = parser.parse_args()
 
