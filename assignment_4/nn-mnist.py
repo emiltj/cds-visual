@@ -103,7 +103,7 @@ if __name__=="__main__":
     ############### Argument parsing ###############
     # Initialize parser
     parser = argparse.ArgumentParser(
-        description = "Generates visualization of network, as well as calculates centrality measures for nodes") 
+        description = "Script that trains a neural networks classifier on a subset of the mnist dataset. Tests on another part of the mnist dataset and outputs classification report. Number and depth of hidden layers can be specified using the -hiddenlayers argument. The trained model can also be used to predict individual images, using the argument --individual.") 
 
     # Add parser arguments
     parser.add_argument(

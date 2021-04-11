@@ -76,7 +76,7 @@ def main(outfilename, save, individual):
 if __name__=="__main__":
     # Initialize parser
     parser = argparse.ArgumentParser(
-        description = "Generates visualization of network, as well as calculates centrality measures for nodes") 
+        description = "Script that trains a linear regression classifier on a subset of the mnist dataset. Tests on another part of the mnist dataset and outputs classification report. Can also be used to predict individual images, using the argument --individual.") 
 
     # Add parser arguments
     parser.add_argument(
