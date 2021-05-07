@@ -1,0 +1,7 @@
+Assignment 2:
+
+1. Name for "non-target"?
+2. Should the normalization of non-target images be from the normalized image, or from the clean histogram?
+3. How many "NOTE"'s??? maybe cut some?
+4. Fix data
+
