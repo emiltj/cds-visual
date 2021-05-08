@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Importing libraries
-import sys, os, argparse
+import sys, os, argparse, joblib, cv2
 sys.path.append(os.path.join(".."))
 import utils.classifier_utils as clf_util
 import numpy as np 
@@ -17,13 +17,16 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score
 
-def main(outfilename, save, individual, hiddenlayers, epochs):
+# Defining main function
+def main(outname, save, individual, hiddenlayers, epochs):
+    
+    # Information for terminal use
     print("[INFO] Loading the MNIST dataset ...")
     
-    ############### DOESN'T RUN CORRECTLY: ###############
     # Importing data; y = what the image depicts, X = values for all pixels (from top right, moving left)
     X, y = fetch_openml('mnist_784', version=1, return_X_y=True)
-
+    
+    # Convert to an array
     X = np.array(X)
     y = np.array(y)
 
@@ -51,41 +54,62 @@ def main(outfilename, save, individual, hiddenlayers, epochs):
     # Defining a model (with the specified number of nodes and layers)
     nn = NeuralNetwork(hiddenlayers)
     
-    print("[INFO] Training the neural networks classifier ...")
     # Fit the model to the training data
+    print("[INFO] Training the neural networks classifier ...") # Information for terminal use
     nn.fit(X_train, y_train, epochs = epochs)
-
+    
     # Using the fitted model to predict the test data
     predictions = nn.predict(X_test)
 
     # The "predictions" object contains certainties that the given image contains a 0, 1, 2, etc. Instead we want a single prediction
     predictions = predictions.argmax(axis=1)
     
-    print("[INFO] Evaluating the neural networks classifier ...")
     # Getting a classification report:
+    print("[INFO] Evaluating the neural networks classifier ...") # Information for terminal use
     classif_report = pd.DataFrame(classification_report(y_test.argmax(axis=1), predictions, output_dict = True))
 
     # Print to terminal
     print(classif_report)
 
-    # Save as csv in "out"-folder, if save == True
+    # Save classification report as csv in "out"-folder and save the model, if save == True
     if save == True:
-        outpath = os.path.join("..", "data", "mnist", "out", outfilename)
-        classif_report.to_csv(outpath, index = False)
-        print(f"\nThe classification benchmark report has been saved: \"{outpath}\"")
+        # If the folder does not already exist, create it
+        if not os.path.exists("out"):
+            os.makedirs("out")
+            
+        # Saving classification report
+        outpath_classif_report = os.path.join("out", outname)
+        classif_report.to_csv(outpath_classif_report, index = False)
+        print(f"[INFO] The classification benchmark report has been saved: \"{outpath_classif_report}\"")
+        
+        # Saving model
+        outpath_nn_model = os.path.join("out", "nn_model.pkl")
+        joblib.dump(nn, outpath_nn_model)
+        print(f"[INFO] The trained neural networks model has been saved: \"{outpath_nn_model}\"")
 
     # If an individual image path is specified, then predict the number this image is meant to represent.
     if individual != None:
-        import cv2
+        
+        # Read individual image and convert to grayscale
         image = cv2.imread(individual)
         gray = cv2.bitwise_not(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY))
+        
+        # Compress image to fit the input size of the model 
         compressed = cv2.resize(gray, (28, 28), interpolation=cv2.INTER_AREA)
-        compressed_flattened = [float(item) for sublist in compressed for item in sublist] # Converting a list of lists into a list 
-        compressed_flattened = np.array(compressed_flattened) # Converting to array
-        compressed_flattened = pd.DataFrame(scaler.transform([compressed_flattened])) # Scaling the features of the individual image
-        individual_pred = nn.predict(compressed_flattened) # Predicting the individual image (output = 10 probabilities - one for each class (0:9))
-        individual_pred = individual_pred.argmax(axis=1) # Getting the highest probability as the prediction
-        print(f"\nImage prediction for \"{individual}\": \"{individual_pred}\"") # Printing into terminal, the prediction
+        
+        # Flatten the compressed image (converting a list of lists into a list)
+        compressed_flattened = [float(item) for sublist in compressed for item in sublist] 
+        
+        # Converting the flattened compressed image to array
+        compressed_flattened = np.array(compressed_flattened)
+        
+        # Scaling the features of the individual image
+        compressed_flattened = pd.DataFrame(scaler.transform([compressed_flattened]))
+        
+        # Predicting the individual image (output = 10 probabilities - one for each class (0:9)). Using the highest probability as the prediction
+        individual_pred = nn.predict(compressed_flattened)
+        individual_pred = int(individual_pred.argmax(axis=1))
+        print(f"[IMAGE PREDICTION] Image prediction for \"{individual}\": {individual_pred}") # Printing into terminal, the prediction
 
 # Define behaviour when called from command line
 if __name__=="__main__":
@@ -96,7 +120,7 @@ if __name__=="__main__":
     # Add argument specifying name of classification report
     parser.add_argument(
         "-o",
-        "--outfilename", 
+        "--outname", 
         type = str,
         default = "classif_report_neural_networks.csv", # Default when not specifying name of outputfile
         required = False, # Since we have a default value, it is not required to specify this argument
@@ -125,9 +149,9 @@ if __name__=="__main__":
         "-H",
         "--hiddenlayers", 
         type = list,
-        default = [2, 4], # Default when not specifying anything in the terminal
+        default = [8, 16], # Default when not specifying anything in the terminal
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "list - specifying the hidden layers, each element in the list corresponds to number of nodes in layer. index in list corresponds to hiddenlayer number. E.g. [2, 4]")
+        help = "list - specifying the hidden layers, each element in the list corresponds to number of nodes in layer. index in list corresponds to hiddenlayer number. E.g. [8, 16]")
     
     # Add argument specifying number of epochs
     parser.add_argument(
@@ -142,4 +166,4 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     # Execute main function
-    main(args.outfilename, args.save, args.individual, args.hiddenlayers, args.epochs)
+    main(args.outname, args.save, args.individual, args.hiddenlayers, args.epochs)

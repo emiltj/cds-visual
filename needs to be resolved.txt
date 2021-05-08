@@ -5,3 +5,14 @@ Assignment 2:
 3. How many "NOTE"'s??? maybe cut some?
 4. Fix data
 
+Assignment 4:
+1. lr: How many hyperparameters? Which ones?
+2. nn: New argument for saving model? Or just "save"?
+
+
+Assignment 5:
+
+
+
+
+Self-assigned:
