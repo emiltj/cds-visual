@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Importing libraries
-import sys, os, cv2, argparse
+import sys, os, cv2, joblib, argparse
 sys.path.append(os.path.join(".."))
 import utils.classifier_utils as clf_util
 import numpy as np
@@ -31,8 +31,8 @@ def main(outname, save, individual, penalty, c):
     X_train, X_test, y_train, y_test = train_test_split(X, 
                                                         y, 
                                                         random_state = 9, # for replication purposes
-                                                        train_size = 7500, # absolute size of test and train set to avoid too much data
-                                                        test_size = 2500)
+                                                        train_size = 20000, # absolute size of test and train set to avoid too much data
+                                                        test_size = 2000)
 
     # Min-max scaling:
     scaler = MinMaxScaler()
@@ -67,12 +67,16 @@ def main(outname, save, individual, penalty, c):
         # Create outpath and save
         outpath = os.path.join("out", outname)
         classif_report.to_csv(outpath, index = False)
-        print(f"[INFO] The classification benchmark report has been saved: \"{outpath}\"")
+        print(f"[INFO] The classification benchmark report has been saved: \"{outpath}\".")
+        
+        # Saving model
+        outpath_lr_model = os.path.join("out", "lr_model.pkl")
+        joblib.dump(clf, outpath_lr_model)
+        print(f"[INFO] The trained logistic regression classifier model has been saved: \"{outpath_lr_model}\".")
         
     # If the argument for individual prediction is not "None", then predict the individual image
     if individual != None: 
-        print("[INFO] Predicting the individual image ...")
-        
+                
         # Get the possible labels, as well as the number of possible labels
         classes = sorted(set(y))
         nclasses = len(classes)

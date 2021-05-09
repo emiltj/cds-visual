@@ -1,5 +1,4 @@
 Assignment 2:
-
 1. Name for "non-target"?
 2. Should the normalization of non-target images be from the normalized image, or from the clean histogram?
 3. How many "NOTE"'s??? maybe cut some?
@@ -8,11 +7,16 @@ Assignment 2:
 Assignment 4:
 1. lr: How many hyperparameters? Which ones?
 2. nn: New argument for saving model? Or just "save"?
-
+3. nn: horrible performance? what is wrong?
 
 Assignment 5:
-
+1. nothing
 
 
 
 Self-assigned:
+
+
+In general:
+1. How much information in the argparsing? For "help".
+2.Additional """HELP FOR ALL FUNCTIONS?"""

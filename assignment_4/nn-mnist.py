@@ -34,8 +34,8 @@ def main(outname, save, individual, hiddenlayers, epochs):
     X_train, X_test, y_train, y_test = train_test_split(X, 
                                                         y, 
                                                         random_state=9, # just for replication purposes
-                                                        train_size=7500, # absolute size of test and train set to avoid too much data
-                                                        test_size=2500)
+                                                        train_size=20000, # absolute size of test and train set to avoid too much data
+                                                        test_size=2000)
   
     # Min-max scaling (doing it after the split, to avoid any fitting of the training data from the testing data)
     scaler = MinMaxScaler()
@@ -80,12 +80,12 @@ def main(outname, save, individual, hiddenlayers, epochs):
         # Saving classification report
         outpath_classif_report = os.path.join("out", outname)
         classif_report.to_csv(outpath_classif_report, index = False)
-        print(f"[INFO] The classification benchmark report has been saved: \"{outpath_classif_report}\"")
+        print(f"[INFO] The classification benchmark report has been saved: \"{outpath_classif_report}\".")
         
         # Saving model
         outpath_nn_model = os.path.join("out", "nn_model.pkl")
         joblib.dump(nn, outpath_nn_model)
-        print(f"[INFO] The trained neural networks model has been saved: \"{outpath_nn_model}\"")
+        print(f"[INFO] The trained neural networks model has been saved: \"{outpath_nn_model}\".")
 
     # If an individual image path is specified, then predict the number this image is meant to represent.
     if individual != None:
@@ -158,9 +158,9 @@ if __name__=="__main__":
         "-e",
         "--epochs", 
         type = int,
-        default = 5, # Default when not specifying anything in the terminal
+        default = 50, # Default when not specifying anything in the terminal
         required = False, # Since we have a default value, it is not required to specify this argument
-        help = "int - specifying number of epochs for training the model. Default = 5")
+        help = "int - specifying number of epochs for training the model. Default = 50")
     
     # Taking all the arguments we added to the parser and input into "args"
     args = parser.parse_args()

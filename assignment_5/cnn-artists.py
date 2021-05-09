@@ -24,9 +24,9 @@ from tensorflow.keras.layers import (Conv2D,
 
 # Define function for retrieving alphabetically sorted artist list:
 def get_artists(artists_path):
-    artists = os.listdir(artists_path)
-    artists = artists[0:4] + artists[5:]
-    artists = sorted(artists)
+    artists = os.listdir(artists_path) # Get list of directories (each names corresponds to artists' names
+    artists = artists[0:4] + artists[5:] # Residue from a deleted file is removed
+    artists = sorted(artists) # Sort alphabetically
     return artists
 
 # Define function for retrieving test/train data:
@@ -36,12 +36,10 @@ def get_train_test(artists):
     test_paintings, test_paintings_artists = [], []
 
     # For every artist, generate a list of paintings. 
-    # For every painting in list of paintings. 
-    # Take the artist name and append it. Take the painting and append it
-    # //Repeat for test
-
+    # For every painting in list of paintings, take the artist name and append it to the list. Take the painting name and append it also
+    # Repeat steps for testing
     for artist in artists:
-        print(f"[INFO] Importing paintings from: {artist}")
+        print(f"[INFO] Importing paintings from: {artist}") # Information for user in terminal
         # Training
         for train_painting in glob.glob(os.path.join("..", "data", "paintings", "training", f"{artist}", "*.jpg")):
             train_paintings_artists.append(artist)
@@ -56,7 +54,10 @@ def get_train_test(artists):
 
 # Define function for resizing and making into array
 def get_resized_arrays(paintings, width, height):
+    # Empty list for appending to
     paintings_resized = []
+    
+    # For every painting in the list of paintings
     for painting in paintings:
         # Resize painting
         resized = cv2.resize(painting, (width, height), interpolation = cv2.INTER_AREA)
@@ -71,9 +72,9 @@ def get_resized_arrays(paintings, width, height):
     # Return
     return paintings_resized
 
-# Define function for plotting accuracy/loss over epochs
+# Define function for plotting accuracy and loss over epochs
 def plot_history(H, epochs):
-    # visualize performance
+    # Visualizing performance
     plt.style.use("fivethirtyeight")
     plt.figure()
     plt.plot(np.arange(0, epochs), H.history["loss"], label="train_loss")
@@ -86,10 +87,9 @@ def plot_history(H, epochs):
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join("out", 'training_history.png'), format='png', dpi=100)
-    plt.show()
 
-
-def main(cnn, resizedim,  batch_size):
+# Defining main function, which uses the previously defined functions as well as trains/tests the model
+def main(cnn, resizedim,  batch_size, epochs):
     # Make a alphabetically sorted list of all the artists
     artists_path = os.path.join("..", "data", "paintings", "training")
     artists = get_artists(artists_path)
@@ -101,10 +101,11 @@ def main(cnn, resizedim,  batch_size):
     train_paintings_resized = get_resized_arrays(train_paintings, resizedim[0], resizedim[1])
     test_paintings_resized = get_resized_arrays(test_paintings, resizedim[0], resizedim[1])
 
-    # Make ML names for what we have
+    # Make ML names for train
     trainX = train_paintings_resized
     trainY = train_paintings_artists
-
+    
+    # Make ML names for test
     testX = test_paintings_resized
     testY = test_paintings_artists
 
@@ -115,7 +116,8 @@ def main(cnn, resizedim,  batch_size):
 
     # Initialize label names for CIFAR-10 dataset
     labelNames = artists # Here we know that the order is the same in "artists", so we know how to map the binarized labels onto the string names
-
+    
+    # If we're using the ShallowNet architecture
     if cnn == "ShallowNet":
         architecture = "INPUT => CONV => ReLU => FC"
         # initialise model
@@ -131,7 +133,8 @@ def main(cnn, resizedim,  batch_size):
         model.add(Flatten())
         model.add(Dense(10))
         model.add(Activation("softmax"))
-
+    
+    # Else, if we're using the LeNet architecture
     elif cnn == "LeNet":
         architecture = "INPUT => CONV => ReLU => MAXPOOL => CONV => ReLU => MAXPOOL => FC => ReLU => FC"
         # define model
@@ -171,9 +174,11 @@ def main(cnn, resizedim,  batch_size):
     H = model.fit(trainX, trainY, 
                   validation_data=(testX, testY), 
                   batch_size = batch_size,
-                  epochs = 40,
-                  verbose = 1)
-    print(f"[INFO] Training of the model has been completed using batchsize: \n{batch_size} \n and the CNN architecture from {cnn}: \n {architecture}\n")
+                  epochs = epochs,
+                  verbose = 1) # Showing the training the terminal
+    
+    # Information for the user in terminal
+    print(f"[INFO] Training of the model has been completed using a batchsize of {batch_size} and using the CNN architecture from {cnn}: \n {architecture}\n")
 
     # Get predictions:
     predictions = model.predict(testX, batch_size=batch_size)
@@ -183,21 +188,18 @@ def main(cnn, resizedim,  batch_size):
                                 predictions.argmax(axis=1),
                                 target_names=labelNames, output_dict = True))
 
-    #Printing classification report
+    # Printing and saving classification_report
     print(classif_report)
-
-    # Save and print classif_report
     classif_report.to_csv(os.path.join("out", 'classification_report.csv'), sep=',', index = True)
     print("A classification report has been saved succesfully: \"out/classification_report.csv\"")
 
-    # Show plot and save it
-    plot_history(H, 40)
+    # Show plot of accuracy and loss over epochs and save it
+    plot_history(H, epochs)
     print("A plot history report has been saved succesfully: \"out/training_history.png\"")
 
-    # Show plot and save it
+    # Show the  and save it
     plot_model(model, to_file = os.path.join("out", 'model_plot.png'), show_shapes=True, show_layer_names=True)
-    print("A model of the CNN has been saved succesfully: \"out/model_plot.png\"")
-
+    print("A visualization of the CNN model architecture has been saved succesfully: \"out/CNN_architecture.png\"")
 
 # Define behaviour when called from command line
 if __name__=="__main__":
@@ -211,7 +213,7 @@ if __name__=="__main__":
         type = str,
         default = "ShallowNet",
         required = False,
-        help= "")
+        help = "str - specifying cnn architecture, use either \"ShallowNet\" or \"LeNet\"")
     
     # Add outpath argument
     parser.add_argument(
@@ -220,18 +222,28 @@ if __name__=="__main__":
         type = list, 
         default = [32, 32],
         required = False,
-        help = "")
+        help = "list - specifying dimensions that the pictures should be resized to, e.g. [32, 32]")
         
-    # Add outpath argument
+    # Add batch size argument
     parser.add_argument(
         "-b",
         "--batch_size",
         type = int, 
         default = 200,
         required = False,
-        help = "")
+        help = "int - specifying batch size")
+    
+    # Add epochs argument
+    parser.add_argument(
+        "-e",
+        "--epochs",
+        type = int, 
+        default = 50,
+        required = False,
+        help = "int - specifying number of epochs")
     
     # Taking all the arguments we added to the parser and input into "args"
     args = parser.parse_args()
 
-    main(args.cnn, args.resizedim, args.batch_size)
+    # Execute main function
+    main(args.cnn, args.resizedim, args.batch_size, args.epochs)
